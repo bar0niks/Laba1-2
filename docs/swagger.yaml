@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: Gym CRM API
+  version: 1.0.0
+  description: API личного кабинета системы учета клиентов тренажерного зала.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/auth/register:
+    post:
+      summary: Регистрация клиента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/auth/login:
+    post:
+      summary: Вход в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/auth/me:
+    get:
+      summary: Получить личный кабинет клиента
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Данные кабинета
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+  /api/clients/me:
+    put:
+      summary: Обновить профиль клиента
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emergencyContact:
+                  type: string
+                goals:
+                  type: string
+      responses:
+        '200':
+          description: Обновленный профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientProfile'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [admin, client]
+      required: [id, email, fullName, role]
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: string
+      required: [email, password, fullName, phone]
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/AuthUser'
+      required: [token, user]
+    ClientProfile:
+      type: object
+      properties:
+        userId:
+          type: integer
+        phone:
+          type: string
+        emergencyContact:
+          type: string
+        goals:
+          type: string
+      required: [userId, phone, emergencyContact, goals]
+    Membership:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        planName:
+          type: string
+        validUntil:
+          type: string
+        visitsLeft:
+          type: integer
+      required: [id, userId, planName, validUntil, visitsLeft]
+    VisitEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        visitedAt:
+          type: string
+        trainer:
+          type: string
+        notes:
+          type: string
+      required: [id, userId, visitedAt, trainer, notes]
+    DashboardResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+        profile:
+          $ref: '#/components/schemas/ClientProfile'
+        membership:
+          allOf:
+            - $ref: '#/components/schemas/Membership'
+          nullable: true
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisitEntry'
+      required: [user, profile, membership, visits]
