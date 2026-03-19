@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gym_crm
+      POSTGRES_USER: gym
+      POSTGRES_PASSWORD: gym
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/services/auth-service/Dockerfile
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://gym:gym@postgres:5432/gym_crm
+      JWT_SECRET: super-secret-jwt-key
+    depends_on:
+      - postgres
+
+  members-service:
+    build:
+      context: .
+      dockerfile: apps/services/members-service/Dockerfile
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgres://gym:gym@postgres:5432/gym_crm
+    depends_on:
+      - postgres
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/services/api-gateway/Dockerfile
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      MEMBERS_SERVICE_URL: http://members-service:3002
+      JWT_SECRET: super-secret-jwt-key
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - members-service
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: lr12_default
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
