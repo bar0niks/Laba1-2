@@ -1,0 +1,16 @@
+{
+  "name": "gym-crm-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/frontend",
+    "apps/services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @gym/shared && npm run build --workspace @gym/auth-service && npm run build --workspace @gym/members-service && npm run build --workspace @gym/api-gateway && npm run build --workspace @gym/frontend",
+    "dev": "npm run dev -ws",
+    "lint": "npm run lint -ws",
+    "start": "npm run start -ws"
+  }
+}
