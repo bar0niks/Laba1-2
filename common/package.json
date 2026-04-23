@@ -1,0 +1,13 @@
+{
+  "name": "@gym/frontend-common",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gym/shared-types": "file:../../shared-types"
+  }
+}
